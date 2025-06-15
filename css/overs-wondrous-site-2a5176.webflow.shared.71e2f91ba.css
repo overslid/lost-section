@@ -13,6 +13,9 @@ article, aside, details, figcaption, figure, footer, header, hgroup, main, menu,
   display: block;
 }
 
+cursor: url("images/oth665.cur"), auto;
+}
+
 audio, canvas, progress, video {
   vertical-align: baseline;
   display: inline-block;
