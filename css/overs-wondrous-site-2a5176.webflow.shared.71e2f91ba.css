@@ -7,7 +7,7 @@ html {
 body {
   margin: 0;
   min-width: 1024px;
-  cursor: url("images/oth665.cur"), auto;
+  cursor: url("../images/oth665.cur"), auto;
 }
 
 article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary {
