@@ -7,14 +7,13 @@ html {
 body {
   margin: 0;
   min-width: 1024px;
+  cursor: url("images/oth665.cur"), auto;
 }
 
 article, aside, details, figcaption, figure, footer, header, hgroup, main, menu, nav, section, summary {
   display: block;
 }
 
-cursor: url("images/oth665.cur"), auto;
-}
 
 audio, canvas, progress, video {
   vertical-align: baseline;
