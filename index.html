@@ -26,7 +26,7 @@
             padding-top: 25px; /* Odstęp od góry na wyśrodkowany pasek odtwarzacza */
         }
 
-        /* --- RETRO AUDIO PLAYER (15px wysokości, szerokość idealnie zbalansowana do 1080px kontenera) --- */
+        /* --- RETRO AUDIO PLAYER (Idealnie zgrany z głównym kontenerem 1080px) --- */
         .player-wrapper {
             width: 100%;
             max-width: 1080px;
@@ -79,7 +79,7 @@
 
         /* Ruchomy tytuł utworu (marquee) */
         .track-title-container {
-            width: 120px;
+            width: 150px;
             overflow: hidden;
             white-space: nowrap;
             position: relative;
@@ -89,7 +89,7 @@
         .track-title-scroll {
             display: inline-block;
             color: #264935;
-            animation: marqueeText 8s linear infinite;
+            animation: marqueeText 10s linear infinite;
         }
 
         @keyframes marqueeText {
@@ -474,7 +474,7 @@
                 width: 50px;
             }
             .track-title-container {
-                width: 60px;
+                width: 70px;
             }
             .main-container::before,
             .main-container::after {
@@ -569,12 +569,12 @@
     <div class="player-wrapper">
         <div id="retro-player-bar">
             <div class="player-group">
-                <button class="player-btn" id="playPauseBtn">[PAUSE]</button>
+                <button class="player-btn" id="playPauseBtn">[PLAY]</button>
                 <button class="player-btn" id="stopBtn">[STOP]</button>
             </div>
             <div class="player-group">
                 <div class="track-title-container">
-                    <span class="track-title-scroll">lost-section.com // track.mp3</span>
+                    <span class="track-title-scroll">宇多田ヒカル【First Love】03 In my room</span>
                 </div>
                 <div class="audio-visualizer" id="audioVisualizer">
                     <div class="vis-bar"></div>
@@ -596,8 +596,8 @@
         </div>
     </div>
 
-    <!-- Atrybut muted pozwala przeglądarkom bezwzględnie zautomatyzować autostart -->
-    <audio id="bgAudio" src="audio/track.mp3" loop muted autoplay></audio>
+    <!-- Ukryty odtwarzacz audio -->
+    <audio id="bgAudio" src="audio/track.mp3" loop></audio>
     <div class="side-banners-left"></div>
 
     <div class="main-container">
@@ -683,23 +683,56 @@
             let targetVolume = savedVolume !== null ? parseFloat(savedVolume) : 0.15;
             volumeSlider.value = targetVolume;
 
-            // Start od 5 sekundy przy pierwszym uruchomieniu (lub z session storage)
+            // Ustawienie startu od 5 sekundy
             if (savedTime) {
                 audio.currentTime = parseFloat(savedTime);
             } else {
                 audio.currentTime = 5;
             }
 
-            // Gwarantowany autostart dzięki wyciszeniu w HTML, od razu odpinamy wyciszenie i podgłaśniamy
+            audio.volume = 0; // Startujemy całkowicie bezgłośnie
+
+            // Funkcja uruchamiająca odtwarzanie przy pierwszej interakcji użytkownika (omija blokady przeglądarek)
+            function triggerAutoplay() {
+                if (audio.paused) {
+                    audio.play().then(() => {
+                        playPauseBtn.textContent = '[PAUSE]';
+                        sessionStorage.setItem('audioPlaying', 'true');
+
+                        // Płynne podgłaśnianie od 0% do 15% w ciągu 3 sekund
+                        let currentVol = 0;
+                        let step = targetVolume / 30;
+                        let fadeInterval = setInterval(() => {
+                            currentVol += step;
+                            if (currentVol >= targetVolume) {
+                                currentVol = targetVolume;
+                                audio.volume = currentVol;
+                                clearInterval(fadeInterval);
+                            } else {
+                                audio.volume = currentVol;
+                            }
+                        }, 100);
+                    }).catch(() => {});
+                }
+                // Usuwamy nasłuchiwacze po pierwszym wywołaniu, żeby grało dalej normalnie
+                window.removeEventListener('click', triggerAutoplay);
+                window.removeEventListener('mousemove', triggerAutoplay);
+                window.removeEventListener('scroll', triggerAutoplay);
+                window.removeEventListener('keydown', triggerAutoplay);
+            }
+
+            // Nasłuchiwanie pierwszej interakcji użytkownika do wymuszenia płynnego autostartu
+            window.addEventListener('click', triggerAutoplay);
+            window.addEventListener('mousemove', triggerAutoplay);
+            window.addEventListener('scroll', triggerAutoplay);
+            window.addEventListener('keydown', triggerAutoplay);
+
+            // Próba natychmiastowego startu w tle (na wypadek zezwoleń przeglądarki)
             audio.play().then(() => {
-                audio.muted = false;
                 playPauseBtn.textContent = '[PAUSE]';
                 sessionStorage.setItem('audioPlaying', 'true');
-
-                // Płynne podgłaśnianie od 0% do docelowych 15% w ciągu 3 sekund
-                audio.volume = 0;
                 let currentVol = 0;
-                let step = targetVolume / 30; // 30 kroków co 100ms
+                let step = targetVolume / 30;
                 let fadeInterval = setInterval(() => {
                     currentVol += step;
                     if (currentVol >= targetVolume) {
@@ -710,12 +743,13 @@
                         audio.volume = currentVol;
                     }
                 }, 100);
-
+                // Skoro poszło z automatu, usuwamy nasłuchiwacze interakcji
+                window.removeEventListener('click', triggerAutoplay);
+                window.removeEventListener('mousemove', triggerAutoplay);
+                window.removeEventListener('scroll', triggerAutoplay);
+                window.removeEventListener('keydown', triggerAutoplay);
             }).catch(() => {
-                audio.muted = false;
-                audio.volume = targetVolume;
                 playPauseBtn.textContent = '[PLAY]';
-                sessionStorage.setItem('audioPlaying', 'false');
             });
 
             window.addEventListener('beforeunload', function() {
@@ -739,6 +773,7 @@
             stopBtn.addEventListener('click', function() {
                 audio.pause();
                 audio.currentTime = 5; // Reset do 5 sekundy
+                audio.volume = targetVolume;
                 playPauseBtn.textContent = '[PLAY]';
                 sessionStorage.setItem('audioPlaying', 'false');
                 sessionStorage.setItem('audioCurrentTime', '5');
