@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lost-section.com</title>
+    <!-- Prosty styl CSS -->
+    <style>
+        /* Reset i ogólne ustawienia */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            max-width: 100%;
+        }
+
+        body {
+            background-color: #000000;
+            font-family: monospace;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-top: 15px; /* Odstęp od góry na stały pasek odtwarzacza */
+        }
+
+        /* --- RETRO AUDIO PLAYER (15px wysokości, na samej górze) --- */
+        #retro-player-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 15px;
+            background-color: #0d1a13;
+            border-bottom: 1px solid #264935;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10000;
+            font-family: monospace;
+            font-size: 9px;
+            color: #264935;
+            padding: 0 10px;
+            user-select: none;
+            overflow: hidden;
+        }
+
+        .player-left, .player-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2;
+            background-color: #0d1a13; /* Krycie pod elementami pływającymi */
+            flex-shrink: 0;
+        }
+
+        .player-btn {
+            background: none;
+            border: none;
+            color: #264935;
+            font-family: monospace;
+            font-size: 9px;
+            cursor: pointer;
+            padding: 0;
+            transition: color 0.2s;
+        }
+
+        .player-btn:hover {
+            color: #ffffff;
+        }
+
+        /* Kontener na przewijający się napis w pętli (retro marquee) */
+        .player-marquee-container {
+            flex-grow: 1;
+            overflow: hidden;
+            position: relative;
+            height: 15px;
+            margin: 0 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        @keyframes retroMarquee {
+            0% {
+                transform: translateX(100%);
+            }
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .player-marquee-text {
+            position: absolute;
+            white-space: nowrap;
+            color: #264935;
+            font-family: monospace;
+            font-size: 9px;
+            animation: retroMarquee 14s linear infinite;
+        }
+
+        /* Pasek postępu utworu */
+        .progress-container {
+            width: 150px;
+            height: 5px;
+            background-color: #000000;
+            border: 1px solid #264935;
+            cursor: pointer;
+            position: relative;
+            margin: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background-color: #264935;
+            width: 0%;
+            pointer-events: none;
+        }
+
+        /* Suwak głośności */
+        .volume-slider {
+            -webkit-appearance: none;
+            width: 45px;
+            height: 4px;
+            background: #000000;
+            border: 1px solid #264935;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .volume-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 6px;
+            height: 8px;
+            background: #264935;
+            cursor: pointer;
+        }
+
+        .side-banners-left {
+            display: none;
+            position: fixed;
+            left: 20px;
+            top: 35px; /* Przesunięte w dół o wysokość paska odtwarzacza */
+            width: 88px;
+        }
+
+        /* Definicja animacji pulsowania fade'a */
+        @keyframes pulseFade {
+            0% {
+                opacity: 0.72;
+            }
+            50% {
+                opacity: 0.92;
+            }
+            100% {
+                opacity: 0.72;
+            }
+        }
+
+        /* Idealnie zbalansowana poświata pod guzikami */
+        @keyframes buttonGlowPulse {
+            0% {
+                box-shadow: 0 5px 12px 0 rgba(3, 24, 14, 0.42);
+            }
+            50% {
+                box-shadow: 0 8px 17px 1px rgba(6, 41, 23, 0.68);
+            }
+            100% {
+                box-shadow: 0 5px 12px 0 rgba(3, 24, 14, 0.42);
+            }
+        }
+
+        /* Animacja lewitacji dla wersji mobilnej */
+        @keyframes mobileLevitate {
+            0% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-4px);
+            }
+            100% {
+                transform: translateY(0px);
+            }
+        }
+
+        .main-container {
+            width: 100%;
+            max-width: 1080px;
+            background-color: #000000;
+            position: relative;
+            padding: 0 15px;
+        }
+
+        /* Efekt fade (poświata) po bokach CAŁEGO bloku */
+        .main-container::before,
+        .main-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 65px;
+            z-index: 100;
+            pointer-events: none;
+            animation: pulseFade 4s ease-in-out infinite;
+        }
+        .main-container::before {
+            left: -45px;
+            background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(2, 12, 8, 0.90));
+        }
+        .main-container::after {
+            right: -45px;
+            background: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(2, 12, 8, 0.90));
+        }
+
+        /* 1. Górny banner */
+        .banner-gora img {
+            width: 100%;
+            height: auto;
+            max-height: 246px;
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
