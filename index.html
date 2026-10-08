@@ -25,18 +25,18 @@
             padding-top: 25px;
         }
 
-        /* --- RETRO AUDIO PLAYER (Idealnie dopasowany do 1080px) --- */
+        /* --- RETRO AUDIO PLAYER (Dokładnie 1080px) --- */
         .player-wrapper {
             width: 100%;
             max-width: 1080px;
-            padding: 0 15px;
+            padding: 0;
             margin-bottom: 15px;
             display: flex;
             justify-content: center;
         }
 
         #retro-player-bar {
-            width: 100%;
+            width: 1080px;
             height: 15px;
             background-color: #0d1a13;
             border: 1px solid #264935;
@@ -190,7 +190,7 @@
             max-width: 1080px;
             background-color: #000000;
             position: relative;
-            padding: 0 15px;
+            padding: 0; /* Brak wewnętrznych marginesów – grafiki mają równe 1080px */
         }
 
         /* Efekt fade po bokach bloku 1080px */
@@ -457,6 +457,7 @@
             }
             #retro-player-bar {
                 max-width: 100%;
+                width: 100%;
                 padding: 0 4px;
                 gap: 6px;
                 font-size: 8px;
