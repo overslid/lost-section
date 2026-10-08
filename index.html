@@ -10,9 +10,12 @@
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            max-width: 100%;
         }
-
+        img {
+    display: block;
+    max-width: none;
+       }
+        
         body {
             background-color: #000000;
             font-family: monospace;
@@ -21,7 +24,8 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            overflow-x: hidden;
+            overflow-x: auto;
+            min-width: 1080px;
             padding-top: 25px;
         }
 
@@ -29,6 +33,7 @@
         .player-wrapper {
             width: 100%;
             max-width: 1080px;
+            min-width: 1080px;
             padding: 0;
             margin-bottom: 15px;
             display: flex;
@@ -186,11 +191,13 @@
         }
 
         .main-container {
-            width: 100%;
+            width: 1080px;
             max-width: 1080px;
+            min-width: 1080px;
             background-color: #000000;
             position: relative;
-            padding: 0; /* Brak wewnętrznych marginesów – grafiki mają równe 1080px */
+            padding: 0;
+            flex-shrink: 0;; /* Brak wewnętrznych marginesów – grafiki mają równe 1080px */
         }
 
         /* Efekt fade po bokach bloku 1080px */
