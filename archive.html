@@ -1,0 +1,1219 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lost-section.com | CONTACT</title>
+    <style>
+        /* Reset i ogólne ustawienia */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        img {
+    display: block;
+    max-width: none;
+       }
+        
+        body {
+            background-color: #000000;
+            font-family: monospace;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: auto;
+            min-width: 1080px;
+            padding-top: 0;
+            position: relative;
+        }
+
+        /* Tło po bokach bloku grafik: zapętlony (kafelkowany) GIF 300x300,
+           czarno-biały (filter: grayscale) i z 75% krycia. Przewija się razem ze stroną. */
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: -1;
+            pointer-events: none;
+            background-image: url('images/ls_bg_pattern.gif');
+            background-repeat: repeat;
+            background-size: 300px 300px;
+            filter: grayscale(100%);
+            opacity: 0.20;
+        }
+
+        /* --- RETRO AUDIO PLAYER (Dokładnie 1080px) ---
+           Lewa strona: sterowanie (play, stop, głośność, przewijanie)
+           Prawa strona: informacje (tytuł, czas, wizualizer)
+           Wszystkie odstępy = --pl-gap, a suwaki to segmentowe "piksele" w stylu Winampa */
+        .player-wrapper {
+            width: 100%;
+            max-width: 1080px;
+            min-width: 1080px;
+            padding: 0;
+            margin-bottom: 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        #retro-player-bar {
+            --pl-gap: 12px;
+            --pl-green: #264935;
+            --pl-dim: rgba(38, 73, 53, 0.30);
+            position: relative;
+            width: 1080px;
+            height: 18px;
+            background-color: #0d1a13;
+            border: 1px solid #264935;
+            box-shadow: inset 0 0 0 1px #08120d;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 10000;
+            font-family: monospace;
+            font-size: 9px;
+            color: #264935;
+            padding: 0 9px;
+            user-select: none;
+            -webkit-user-select: none;
+            overflow: hidden;
+            gap: var(--pl-gap);
+        }
+
+        /* delikatne "linie CRT" na całym pasku */
+        #retro-player-bar::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.16) 0 1px, transparent 1px 3px);
+        }
+
+        .player-group {
+            display: flex;
+            align-items: center;
+            align-self: stretch;
+            gap: var(--pl-gap);
+            flex-shrink: 0;
+        }
+
+        .player-btn {
+            background: none;
+            border: none;
+            color: #264935;
+            font-family: monospace;
+            font-size: 9px;
+            cursor: pointer;
+            padding: 0;
+            align-self: stretch;
+            transition: color 0.2s;
+        }
+
+        #playPauseBtn {
+            min-width: 7ch;
+            text-align: left;
+        }
+
+        .player-label {
+            color: #264935;
+            letter-spacing: 0.5px;
+        }
+
+        /* cienki separator między sekcjami */
+        .player-sep {
+            width: 1px;
+            height: 10px;
+            background: #264935;
+            opacity: 0.5;
+            flex-shrink: 0;
+        }
+
+        /* Segmentowy suwak (wspólny dla głośności i przewijania):
+           segment 3px + 1px przerwy, szerokość = n*4-1 px */
+        .seg-bar {
+            position: relative;
+            width: 47px;
+            height: 8px;
+            flex-shrink: 0;
+            cursor: pointer;
+            touch-action: none;
+            background: repeating-linear-gradient(90deg, var(--pl-dim) 0 3px, transparent 3px 4px);
+        }
+
+        .seg-bar.seg-seek {
+            width: 159px;
+        }
+
+        /* niewidoczny, powiększony obszar dotyku */
+        .seg-bar::after {
+            content: "";
+            position: absolute;
+            top: -9px;
+            bottom: -9px;
+            left: -4px;
+            right: -4px;
+        }
+
+        .seg-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            width: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(90deg, var(--pl-green) 0 3px, transparent 3px 4px);
+        }
+
+        .seg-bar:focus-visible {
+            outline: 1px solid #264935;
+            outline-offset: 3px;
+        }
+
+        @media (hover: hover) {
+            .player-btn:hover {
+                color: #ffffff;
+            }
+            .seg-bar:hover .seg-fill {
+                background: repeating-linear-gradient(90deg, #ffffff 0 3px, transparent 3px 4px);
+            }
+        }
+
+        /* Ruchomy tytuł utworu (marquee) z wygaszonymi brzegami */
+        .track-title-container {
+            width: 220px;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            flex-shrink: 0;
+            -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+            mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+        }
+
+        .track-title-scroll {
+            display: inline-block;
+            color: #264935;
+            animation: marqueeText 10s linear infinite;
+        }
+
+        @keyframes marqueeText {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* Licznik czasu utworu */
+        .time-display {
+            font-family: monospace;
+            font-size: 9px;
+            color: #264935;
+            white-space: nowrap;
+            letter-spacing: 0.5px;
+        }
+
+        /* Mini wizualizer audio (pikselowe słupki 3px + 1px przerwy) */
+        .audio-visualizer {
+            display: flex;
+            align-items: flex-end;
+            gap: 1px;
+            height: 10px;
+            width: 19px;
+            flex-shrink: 0;
+        }
+
+        .vis-bar {
+            width: 3px;
+            background-color: #264935;
+            height: 2px;
+            transition: height 0.1s ease;
+        }
+
+        .side-banners-left {
+            display: none;
+            position: fixed;
+            left: 20px;
+            top: 35px;
+            width: 88px;
+        }
+
+        @keyframes pulseFade {
+            0% { opacity: 0.72; }
+            50% { opacity: 0.92; }
+            100% { opacity: 0.72; }
+        }
+
+        @keyframes buttonGlowPulse {
+            0% { box-shadow: 0 5px 12px 0 rgba(3, 24, 14, 0.42); }
+            50% { box-shadow: 0 8px 17px 1px rgba(6, 41, 23, 0.68); }
+            100% { box-shadow: 0 5px 12px 0 rgba(3, 24, 14, 0.42); }
+        }
+
+        @keyframes mobileLevitate {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-4px); }
+            100% { transform: translateY(0px); }
+        }
+
+        .main-container {
+            width: 1080px;
+            max-width: 1080px;
+            min-width: 1080px;
+            background-color: #000000;
+            position: relative;
+            padding: 0;
+            flex-shrink: 0;; /* Brak wewnętrznych marginesów – grafiki mają równe 1080px */
+        }
+
+        /* Efekt fade po bokach bloku 1080px */
+        .main-container::before,
+        .main-container::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 65px;
+            z-index: 100;
+            pointer-events: none;
+            animation: pulseFade 4s ease-in-out infinite;
+        }
+        .main-container::before {
+            left: -65px;
+            background: linear-gradient(to right, rgba(0, 0, 0, 0), rgba(2, 12, 8, 0.90));
+        }
+        .main-container::after {
+            right: -65px;
+            background: linear-gradient(to left, rgba(0, 0, 0, 0), rgba(2, 12, 8, 0.90));
+        }
+
+        .banner-gora img {
+            width: 100%;
+            height: auto;
+            max-height: 246px;
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
+        }
+
+        .nav-bar {
+            background-color: #000000;
+            height: 65px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 80px;
+        }
+
+        .nav-bar a {
+            display: block;
+            border-radius: 4px;
+            animation: buttonGlowPulse 4s ease-in-out infinite;
+            will-change: transform;
+        }
+
+        .nav-bar a img {
+            width: 116px;
+            height: 50px;
+            object-fit: contain;
+            display: block;
+            transition: opacity 0.2s;
+        }
+
+        .nav-bar a img:hover {
+            opacity: 0.8;
+        }
+
+        .margin-box {
+            height: 28px;
+            background-color: #000000;
+        }
+
+        .ls-partners img {
+            width: 100%;
+            height: auto;
+            max-height: 79px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .ls-dol img {
+            width: 100%;
+            height: auto;
+            max-height: 148px;
+            object-fit: cover;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            /* Na telefonie nic nie ma sztywnych 1080px - blok grafik rozciąga się
+               na całą szerokość ekranu (przeglądarka sama skaluje grafiki 1080px) */
+            *, img {
+                max-width: 100%;
+            }
+            body::before {
+                display: none;
+            }
+            body {
+                padding-top: 6px;
+                min-width: 0;
+                overflow-x: hidden;
+            }
+            .player-wrapper {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+                padding: 0;
+                margin-bottom: 6px;
+            }
+            #retro-player-bar {
+                --pl-gap: 7px;
+                width: 100%;
+                max-width: 100%;
+                height: 11px;
+                padding: 0 6px;
+                font-size: 8px;
+                line-height: 1;
+            }
+            .player-btn,
+            .time-display {
+                font-size: 8px;
+                line-height: 1;
+            }
+            .player-sep {
+                height: 6px;
+            }
+            .seg-bar {
+                width: 31px;
+                height: 5px;
+            }
+            .audio-visualizer {
+                height: 7px;
+            }
+            /* Na telefonie pasek postępu jest tylko wskaźnikiem (bez przewijania) */
+            .seg-bar.seg-seek {
+                width: 43px;
+                pointer-events: none;
+                cursor: default;
+            }
+            .seg-bar.seg-seek::after {
+                display: none;
+            }
+            .track-title-container {
+                width: 56px;
+            }
+            /* Na wąskim ekranie pokazujemy tylko bieżący czas (bez " / długość") */
+            .time-total {
+                display: none;
+            }
+            .main-container {
+                width: 100%;
+                min-width: 0;
+                max-width: 100%;
+            }
+            .main-container::before,
+            .main-container::after {
+                display: none;
+            }
+            .main-container {
+                padding: 0;
+            }
+            .nav-bar a img {
+                width: 52px;
+                height: 22px;
+            }
+            .nav-bar {
+                gap: 20px;
+                height: 45px;
+            }
+            .nav-bar a:nth-child(1) {
+                animation: buttonGlowPulse 4s ease-in-out infinite, mobileLevitate 3.2s ease-in-out infinite;
+            }
+            .nav-bar a:nth-child(2) {
+                animation: buttonGlowPulse 4s ease-in-out infinite, mobileLevitate 3.8s ease-in-out infinite 0.5s;
+            }
+            .nav-bar a:nth-child(3) {
+                animation: buttonGlowPulse 4s ease-in-out infinite, mobileLevitate 3.5s ease-in-out infinite 1s;
+            }
+            .nav-bar a:nth-child(4) {
+                animation: buttonGlowPulse 4s ease-in-out infinite, mobileLevitate 3.3s ease-in-out infinite 1.5s;
+            }
+            .margin-box {
+                height: 10px;
+            }
+        }
+
+        @media (min-width: 1084px) {
+            .side-banners-left {
+                display: block;
+            }
+        }
+
+        /* ================= IN PROGRESS (sekcje w budowie) ================= */
+        .in-progress {
+            --ip-green: #264935;
+            --ip-mid: #5f9a7a;
+            --ip-light: #d4eadd;
+            position: relative;
+            background:
+                radial-gradient(ellipse at center, rgba(2, 12, 8, 0.95) 0%, #000000 72%);
+            padding: 46px 44px;
+            overflow: hidden;
+        }
+
+        .ip-frame {
+            position: relative;
+            min-height: 500px;
+            border: 1px solid rgba(38, 73, 53, 0.55);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 26px;
+            padding: 40px 24px;
+            text-align: center;
+            font-family: monospace;
+        }
+
+        /* delikatne linie CRT */
+        .ip-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+        }
+
+        /* narożniki ramki w stylu HUD */
+        .ip-corner {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--ip-green);
+        }
+        .ip-corner.tl { top: -2px; left: -2px; border-right: none; border-bottom: none; }
+        .ip-corner.tr { top: -2px; right: -2px; border-left: none; border-bottom: none; }
+        .ip-corner.bl { bottom: -2px; left: -2px; border-right: none; border-top: none; }
+        .ip-corner.br { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+        .ip-label {
+            font-size: 13px;
+            letter-spacing: 4px;
+            color: var(--ip-mid);
+            text-transform: uppercase;
+        }
+        .ip-label .ip-jp {
+            margin-left: 12px;
+            letter-spacing: 2px;
+            color: var(--ip-green);
+        }
+
+        .ip-title {
+            position: relative;
+            font-size: 76px;
+            font-weight: bold;
+            letter-spacing: 12px;
+            line-height: 1;
+            color: var(--ip-light);
+            text-shadow: 0 0 6px var(--ip-green), 0 0 20px var(--ip-green), 0 0 44px rgba(38, 73, 53, 0.85);
+            animation: ipFlicker 5s linear infinite;
+            padding-left: 12px; /* wyrównanie przez letter-spacing */
+        }
+
+        /* subtelny "glitch" - dwie przesunięte kopie napisu */
+        .ip-title::before,
+        .ip-title::after {
+            content: attr(data-text);
+            position: absolute;
+            left: 12px;
+            top: 0;
+            width: 100%;
+            overflow: hidden;
+            text-shadow: none;
+            pointer-events: none;
+        }
+        .ip-title::before {
+            color: var(--ip-mid);
+            animation: ipGlitchA 4.2s steps(1) infinite;
+        }
+        .ip-title::after {
+            color: var(--ip-green);
+            animation: ipGlitchB 4.2s steps(1) infinite;
+        }
+
+        /* segmentowy pasek "ładowania" - ten sam wzór segmentów co w playerze */
+        .ip-bar {
+            position: relative;
+            width: 100%;
+            max-width: 479px;
+            height: 12px;
+            background: repeating-linear-gradient(90deg, rgba(38, 73, 53, 0.30) 0 3px, transparent 3px 4px);
+        }
+        .ip-bar-fill {
+            height: 100%;
+            width: 0;
+            background: repeating-linear-gradient(90deg, var(--ip-green) 0 3px, transparent 3px 4px);
+            animation: ipLoad 4s steps(60) infinite;
+        }
+
+        .ip-sub {
+            font-size: 15px;
+            letter-spacing: 6px;
+            color: var(--ip-mid);
+        }
+        .ip-cursor {
+            animation: ipBlink 1s steps(1) infinite;
+        }
+
+        @keyframes ipLoad {
+            0%   { width: 0; }
+            85%  { width: 100%; }
+            100% { width: 100%; }
+        }
+        @keyframes ipBlink {
+            0%, 49%   { opacity: 1; }
+            50%, 100% { opacity: 0; }
+        }
+        @keyframes ipFlicker {
+            0%, 18%, 22%, 62%, 64%, 100% { opacity: 1; }
+            20%  { opacity: 0.78; }
+            63%  { opacity: 0.86; }
+        }
+        @keyframes ipGlitchA {
+            0%, 91%, 100% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
+            92% { clip-path: inset(12% 0 58% 0); transform: translateX(-4px); }
+            94% { clip-path: inset(60% 0 14% 0); transform: translateX(3px); }
+            96% { clip-path: inset(30% 0 40% 0); transform: translateX(-2px); }
+        }
+        @keyframes ipGlitchB {
+            0%, 91%, 100% { clip-path: inset(0 0 100% 0); transform: translateX(0); }
+            93% { clip-path: inset(45% 0 20% 0); transform: translateX(4px); }
+            95% { clip-path: inset(8% 0 70% 0); transform: translateX(-3px); }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .ip-title, .ip-title::before, .ip-title::after, .ip-bar-fill, .ip-cursor {
+                animation: none;
+            }
+            .ip-bar-fill { width: 60%; }
+        }
+
+        @media (max-width: 768px) {
+            .in-progress {
+                padding: 14px 12px;
+            }
+            .ip-frame {
+                min-height: 270px;
+                gap: 16px;
+                padding: 24px 10px;
+            }
+            .ip-corner { width: 14px; height: 14px; }
+            .ip-label { font-size: 10px; letter-spacing: 2px; }
+            .ip-title {
+                font-size: 30px;
+                letter-spacing: 5px;
+                padding-left: 5px;
+            }
+            .ip-title::before, .ip-title::after { left: 5px; }
+            .ip-bar { height: 8px; }
+            .ip-sub { font-size: 11px; letter-spacing: 3px; }
+        }
+    </style>
+    <script>
+        // Zastępczy guzik (placeholder), dopóki nie wrzucisz właściwego pliku .png do folderu images/
+        function btnPlaceholder(img, label) {
+            img.onerror = null;
+            var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="116" height="50" viewBox="0 0 116 50">' +
+                '<rect x="1" y="1" width="114" height="48" rx="3" fill="#0d1a13" stroke="#264935" stroke-width="2" stroke-dasharray="4 3"/>' +
+                '<text x="58" y="30" text-anchor="middle" font-family="monospace" font-size="13" fill="#264935">' + label + '</text></svg>';
+            img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+        }
+    </script>
+</head>
+<body>
+
+    <div class="player-wrapper">
+        <div id="retro-player-bar">
+            <!-- LEWA STRONA: sterowanie -->
+            <div class="player-group player-controls">
+                <button class="player-btn" id="playPauseBtn">[PLAY]</button>
+                <button class="player-btn" id="stopBtn">[STOP]</button>
+                <span class="player-sep"></span>
+                <span class="player-label">VOL</span>
+                <div class="seg-bar" id="volumeBar" role="slider" tabindex="0" aria-label="Głośność" aria-valuemin="0" aria-valuemax="100" aria-valuenow="15">
+                    <div class="seg-fill" id="volumeFill"></div>
+                </div>
+                <span class="player-sep"></span>
+                <div class="seg-bar seg-seek" id="progressContainer" role="slider" tabindex="0" aria-label="Przewijanie utworu" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+                    <div class="seg-fill" id="progressBar"></div>
+                </div>
+            </div>
+            <!-- PRAWA STRONA: informacje -->
+            <div class="player-group player-info">
+                <div class="track-title-container">
+                    <span class="track-title-scroll">宇多田ヒカル【First Love】03 In my room</span>
+                </div>
+                <div class="time-display" id="timeDisplay"><span id="timeCur">00:05</span><span class="time-total" id="timeTotal"> / 00:00</span></div>
+                <div class="audio-visualizer" id="audioVisualizer">
+                    <div class="vis-bar"></div>
+                    <div class="vis-bar"></div>
+                    <div class="vis-bar"></div>
+                    <div class="vis-bar"></div>
+                    <div class="vis-bar"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ukryty odtwarzacz audio -->
+    <audio id="bgAudio" src="audio/track.mp3" loop></audio>
+    <div class="side-banners-left"></div>
+
+    <div class="main-container">
+        <div class="banner-gora">
+            <a href="https://www.lost-section.com/">
+                <img src="images/ls_banner_gora.gif" alt="Lost Section Banner">
+            </a>
+        </div>
+
+        <div class="nav-bar" id="navBar">
+            <a href="about.html">
+                <img src="images/button_about_ls.png" alt="About">
+            </a>
+            <a href="archive.html">
+                <img src="images/button_archive_ls.png" alt="Archive">
+            </a>
+            <a href="/shop">
+                <img src="images/button_shop_ls.png" alt="Shop" onerror="btnPlaceholder(this, 'SHOP')">
+            </a>
+            <a href="/contact">
+                <img src="images/button_contact_ls.png" alt="Contact" onerror="btnPlaceholder(this, 'CONTACT')">
+            </a>
+        </div>
+
+        <div class="margin-box"></div>
+
+        <!-- ============ IN PROGRESS ============
+             Ten blok zastępuje niedokończone sekcje strony. Nazwa sekcji w nawiasie bierze się
+             automatycznie z nazwy pliku (contact.html -> CONTACT). Możesz ją też wpisać ręcznie
+             w atrybucie data-section, np. data-section="Shop". -->
+        <div class="in-progress" id="inProgress" data-section="">
+            <div class="ip-frame">
+                <span class="ip-corner tl"></span>
+                <span class="ip-corner tr"></span>
+                <span class="ip-corner bl"></span>
+                <span class="ip-corner br"></span>
+
+                <div class="ip-label">[ SECTION: <span id="ipSection">CONTACT</span> ]<span class="ip-jp">工事中</span></div>
+                <div class="ip-title" data-text="IN PROGRESS">IN PROGRESS</div>
+                <div class="ip-bar" aria-hidden="true"><div class="ip-bar-fill"></div></div>
+                <div class="ip-sub">UNDER CONSTRUCTION<span class="ip-cursor">_</span></div>
+            </div>
+        </div>
+
+        <div class="ls-partners">
+            <img src="images/ls_partners.jpg" alt="Partners">
+        </div>
+
+        <div class="ls-dol">
+            <img src="images/ls_dol.jpg" alt="Stopka">
+        </div>
+    </div>
+
+    <script>
+        function formatTime(seconds) {
+            if (isNaN(seconds)) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return (mins < 10 ? "0" : "") + mins + ":" + (secs < 10 ? "0" : "") + secs;
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const audioEl = document.getElementById('bgAudio');
+
+            // --- Odtwarzanie przez Web Audio (bufor) ---
+            // Utwór jest pobierany i dekodowany do bufora, a czas liczymy sami. Dzięki temu głośność,
+            // start od 5. sekundy, wznawianie po pauzie i przewijanie działają tak samo wszędzie
+            // (na iOS element <audio> podpięty pod Web Audio gubi czas i ignoruje przewijanie).
+            // Gdyby bufor zawiódł, kod wraca do zwykłego elementu <audio>. Interfejs jest taki sam.
+            class BufferPlayer {
+                constructor(url) {
+                    this.url = url;
+                    this.ctx = null;
+                    this.gain = null;
+                    this.buffer = null;
+                    this.source = null;
+                    this.offset = 0;
+                    this.startedAt = 0;
+                    this.paused = true;
+                    this.loading = false;
+                    this.duration = NaN;
+                    this._vol = 0;
+                    this._loadPromise = null;
+                    this._bytesPromise = null;
+                }
+                _ensureCtx() {
+                    if (this.ctx) return;
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AC();
+                    this.gain = this.ctx.createGain();
+                    this.gain.gain.value = this._vol;
+                    this.gain.connect(this.ctx.destination);
+                }
+                _fetchBytes() {
+                    if (!this._bytesPromise) {
+                        this._bytesPromise = fetch(this.url).then(r => {
+                            if (!r.ok) throw new Error('HTTP ' + r.status);
+                            return r.arrayBuffer();
+                        });
+                    }
+                    return this._bytesPromise;
+                }
+                // pobranie plików z wyprzedzeniem (bez dekodowania), żeby pierwszy PLAY był szybszy
+                prefetch() {
+                    this._fetchBytes().catch(() => { this._bytesPromise = null; });
+                }
+                _load() {
+                    if (this.buffer) return Promise.resolve();
+                    if (!this._loadPromise) {
+                        this._loadPromise = this._fetchBytes()
+                            .then(ab => new Promise((resolve, reject) => {
+                                const p = this.ctx.decodeAudioData(ab, resolve, reject);
+                                if (p && p.catch) p.catch(reject);
+                            }))
+                            .then(buf => {
+                                this.buffer = buf;
+                                this.duration = buf.duration;
+                            })
+                            .catch(err => { this._loadPromise = null; this._bytesPromise = null; throw err; });
+                    }
+                    return this._loadPromise;
+                }
+                get currentTime() {
+                    if (this.paused || !this.buffer) return this.offset;
+                    return (this.offset + (this.ctx.currentTime - this.startedAt)) % this.buffer.duration;
+                }
+                set currentTime(t) {
+                    this.offset = Math.max(0, t);
+                    if (!this.paused && this.buffer) this._startSource();
+                }
+                setGain(v) {
+                    this._vol = v;
+                    if (this.gain) this.gain.gain.value = v;
+                }
+                _stopSource() {
+                    if (!this.source) return;
+                    try { this.source.stop(); } catch (e) {}
+                    try { this.source.disconnect(); } catch (e) {}
+                    this.source = null;
+                }
+                _startSource() {
+                    this._stopSource();
+                    const s = this.ctx.createBufferSource();
+                    s.buffer = this.buffer;
+                    s.loop = true;
+                    s.connect(this.gain);
+                    this.offset = this.offset % this.buffer.duration;
+                    s.start(0, this.offset);
+                    this.startedAt = this.ctx.currentTime;
+                    this.source = s;
+                }
+                play() {
+                    this._ensureCtx();
+                    // resume i "odblokowanie" muszą nastąpić synchronicznie w obsłudze kliknięcia (wymóg iOS)
+                    const resumeP = this.ctx.state === 'suspended' ? this.ctx.resume() : Promise.resolve();
+                    const resumed = Promise.race([resumeP, new Promise(r => setTimeout(r, 1500))]);
+                    try {
+                        const silent = this.ctx.createBuffer(1, 1, 22050);
+                        const src = this.ctx.createBufferSource();
+                        src.buffer = silent;
+                        src.connect(this.ctx.destination);
+                        src.start(0);
+                    } catch (e) {}
+                    this.loading = true;
+                    return Promise.all([resumed, this._load()]).then(() => {
+                        this.loading = false;
+                        this.gain.gain.value = this._vol;
+                        this.paused = false;
+                        this._startSource();
+                    }).catch(err => {
+                        this.loading = false;
+                        throw err;
+                    });
+                }
+                pause() {
+                    if (this.paused) return;
+                    this.offset = this.currentTime;
+                    this._stopSource();
+                    this.paused = true;
+                }
+                addEventListener() {} // brak zdarzeń timeupdate - UI korzysta z własnego zegara
+            }
+
+            const isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) ||
+                          (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+            let usesBuffer = !!(window.AudioContext || window.webkitAudioContext);
+            let audio = usesBuffer ? new BufferPlayer(audioEl.getAttribute('src')) : audioEl;
+
+            // --- iOS: dźwięk ma grać mimo bocznego przełącznika wyciszenia ---
+            // Web Audio jest domyślnie wyciszane przełącznikiem, a zwykły <audio> nie. Ustawiamy sesję audio
+            // na "playback" (iOS 16.4+) i dodatkowo odtwarzamy w tle cichy, zapętlony plik (starsze iOS).
+            const SILENT_WAV = 'data:audio/wav;base64,UklGRmQGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YUAGAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA';
+            let silentEl = null;
+            function startSilentKeeper() {
+                try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+                try {
+                    if (!silentEl) {
+                        silentEl = new Audio(SILENT_WAV);
+                        silentEl.loop = true;
+                        silentEl.setAttribute('playsinline', '');
+                    }
+                    const pr = silentEl.play();
+                    if (pr && pr.catch) pr.catch(() => {});
+                } catch (e) {}
+            }
+            function stopSilentKeeper() {
+                try { if (silentEl) silentEl.pause(); } catch (e) {}
+            }
+            const isMobileLayout = () => window.matchMedia('(max-width: 768px)').matches;
+
+            const playPauseBtn = document.getElementById('playPauseBtn');
+            const stopBtn = document.getElementById('stopBtn');
+            const progressFill = document.getElementById('progressBar');
+            const progressContainer = document.getElementById('progressContainer');
+            const volumeBar = document.getElementById('volumeBar');
+            const volumeFill = document.getElementById('volumeFill');
+            const timeCur = document.getElementById('timeCur');
+            const timeTotal = document.getElementById('timeTotal');
+            const visBars = document.querySelectorAll('.vis-bar');
+            const visualizerEl = document.getElementById('audioVisualizer');
+
+            let targetVolume = 0.15;
+
+            // --- Segmentowe suwaki: wypełnienie zawsze kończy się na pełnym segmencie ---
+            const SEG = 4; // 3px segment + 1px przerwy
+            const clamp01 = (v) => Math.min(Math.max(v, 0), 1);
+
+            function setSegFill(fillEl, barEl, ratio) {
+                const segCount = Math.max(1, Math.round((barEl.clientWidth + 1) / SEG));
+                const filled = Math.round(clamp01(ratio) * segCount);
+                fillEl.style.width = filled ? (filled * SEG - 1) + 'px' : '0px';
+            }
+
+            function renderVolume() {
+                setSegFill(volumeFill, volumeBar, targetVolume);
+                volumeBar.setAttribute('aria-valuenow', Math.round(targetVolume * 100));
+            }
+
+            function currentProgressRatio() {
+                return audio.duration ? audio.currentTime / audio.duration : 0;
+            }
+
+            function renderProgress(ratio) {
+                setSegFill(progressFill, progressContainer, ratio);
+                progressContainer.setAttribute('aria-valuenow', Math.round(clamp01(ratio) * 100));
+            }
+
+            // Przeciąganie myszką/palcem po suwaku (pointer events)
+            // onChange(ratio, final, isStart): isStart = pierwszy dotyk, final = koniec gestu
+            function bindSegDrag(el, onChange) {
+                let active = false;
+                let lastRatio = 0;
+                const ratioOf = (e) => {
+                    const r = el.getBoundingClientRect();
+                    return clamp01((e.clientX - r.left) / r.width);
+                };
+                el.addEventListener('pointerdown', (e) => {
+                    active = true;
+                    try { el.setPointerCapture(e.pointerId); } catch (err) {}
+                    lastRatio = ratioOf(e);
+                    onChange(lastRatio, false, true);
+                });
+                el.addEventListener('pointermove', (e) => {
+                    if (!active) return;
+                    lastRatio = ratioOf(e);
+                    onChange(lastRatio, false, false);
+                });
+                const finish = (e) => {
+                    if (!active) return;
+                    active = false;
+                    if (e && typeof e.clientX === 'number' && e.type === 'pointerup') lastRatio = ratioOf(e);
+                    onChange(lastRatio, true, false); // także przy pointercancel (iOS) - używamy ostatniej pozycji
+                };
+                el.addEventListener('pointerup', finish);
+                el.addEventListener('pointercancel', finish);
+            }
+
+            // --- Głośność przez Web Audio (GainNode) ---
+            // iOS Safari ignoruje audio.volume (jest tylko do odczytu), a GainNode działa wszędzie.
+            // Graf tworzymy dopiero przy pierwszym kliknięciu (wymóg przeglądarek).
+            let audioCtx = null;
+            let gainNode = null;
+
+            function ensureAudioGraph() {
+                // Obejście przez Web Audio jest potrzebne tylko na iOS (tam audio.volume nie działa),
+                // a i tam tylko awaryjnie. Na desktopie i Androidzie gra zwykłe <audio> z audio.volume.
+                if (!isIOS || usesBuffer || audioCtx) return;
+                try {
+                    const AC = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AC();
+                    const source = audioCtx.createMediaElementSource(audio);
+                    gainNode = audioCtx.createGain();
+                    gainNode.gain.value = 0;
+                    source.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    audio.volume = 1; // poziom ustawia teraz gainNode
+                } catch (e) {
+                    audioCtx = null;
+                    gainNode = null; // awaryjnie: zwykłe audio.volume
+                }
+            }
+
+            function setVolume(v) {
+                if (usesBuffer) {
+                    audio.setGain(v);
+                } else if (gainNode) {
+                    gainNode.gain.value = v;
+                } else {
+                    audio.volume = v;
+                }
+            }
+
+            let fadeInterval = null;
+            let resumePending = false; // true po PAUSE: PLAY wznawia od miejsca zatrzymania (po STOP / na starcie: od 5 s)
+
+            // Start od 5 sekundy
+            audio.currentTime = 5;
+            if (!usesBuffer) audio.volume = 0;
+
+            function resetTimeDisplay() {
+                timeCur.textContent = formatTime(5);
+                timeTotal.textContent = " / " + formatTime(audio.duration);
+            }
+
+            playPauseBtn.addEventListener('click', function() {
+                if (audio.loading) return; // trwa ładowanie utworu (iOS)
+                if (audio.paused) {
+                    ensureAudioGraph();
+                    if (audioCtx && audioCtx.state === 'suspended') {
+                        audioCtx.resume();
+                    }
+
+                    if (!resumePending) audio.currentTime = 5;
+                    resumePending = false;
+                    setVolume(0);
+                    if (isIOS) startSilentKeeper(); // musi być w obsłudze kliknięcia
+                    if (usesBuffer || audio.readyState < 3) {
+                        playPauseBtn.textContent = '[LOAD]'; // widać, że utwór się ładuje
+                    }
+
+                    audio.play().then(() => {
+                        playPauseBtn.textContent = '[PAUSE]';
+
+                        // Płynne podgłaśnianie (fade-in) do ustawionej głośności
+                        clearInterval(fadeInterval);
+                        let currentVol = 0;
+                        fadeInterval = setInterval(() => {
+                            currentVol += targetVolume / 20;
+                            if (currentVol >= targetVolume) {
+                                setVolume(targetVolume);
+                                clearInterval(fadeInterval);
+                            } else {
+                                setVolume(currentVol);
+                            }
+                        }, 50);
+                    }).catch((err) => {
+                        console.warn('Odtwarzanie nie wystartowało:', err);
+                        if (usesBuffer) {
+                            // silnik buforowy zawiódł (pobieranie/dekodowanie) -> wracamy do zwykłego <audio>,
+                            // które zadziała od następnego kliknięcia
+                            usesBuffer = false;
+                            stopSilentKeeper();
+                            audio = audioEl;
+                            resumePending = false;
+                            audio.currentTime = 5;
+                            audio.volume = 0;
+                            playPauseBtn.textContent = '[ERR]';
+                            setTimeout(() => { playPauseBtn.textContent = '[PLAY]'; }, 1200);
+                        } else {
+                            playPauseBtn.textContent = '[ERR]';
+                            setTimeout(() => { playPauseBtn.textContent = '[PLAY]'; }, 1200);
+                        }
+                    });
+                } else {
+                    clearInterval(fadeInterval);
+                    stopSilentKeeper();
+                    audio.pause();
+                    resumePending = true;
+                    playPauseBtn.textContent = '[PLAY]';
+                }
+            });
+
+            stopBtn.addEventListener('click', function() {
+                clearInterval(fadeInterval);
+                stopSilentKeeper();
+                audio.pause();
+                resumePending = false;
+                audio.currentTime = 5;
+                setVolume(targetVolume);
+                playPauseBtn.textContent = '[PLAY]';
+                renderProgress(0);
+                resetTimeDisplay();
+            });
+
+            let seekDragging = false;
+
+            audioEl.addEventListener('timeupdate', function() {
+                if (audio.duration) {
+                    if (!seekDragging) renderProgress(currentProgressRatio());
+                    timeCur.textContent = formatTime(audio.currentTime);
+                    timeTotal.textContent = " / " + formatTime(audio.duration);
+                }
+
+            });
+
+            // Własny zegar (niezależny od zdarzenia timeupdate, które na iOS bywa zawodne):
+            // animuje wizualizer i odświeża pasek postępu oraz czas, gdy muzyka gra
+            setInterval(function() {
+                if (!audio.paused) {
+                    visBars.forEach(bar => {
+                        const randomHeight = Math.floor(Math.random() * Math.max(2, visualizerEl.clientHeight - 1)) + 2;
+                        bar.style.height = randomHeight + 'px';
+                    });
+                    if (audio.duration && isFinite(audio.duration) && !seekDragging) {
+                        renderProgress(currentProgressRatio());
+                        timeCur.textContent = formatTime(audio.currentTime);
+                        timeTotal.textContent = " / " + formatTime(audio.duration);
+                    }
+                } else {
+                    visBars.forEach(bar => { bar.style.height = '2px'; });
+                }
+            }, 150);
+
+            // Przewijanie: w trakcie przeciągania tylko podgląd, przeskok po puszczeniu
+            bindSegDrag(progressContainer, function(ratio, final, isStart) {
+                if (isMobileLayout()) return; // na telefonie przewijanie jest wyłączone
+                seekDragging = !final;
+                renderProgress(ratio);
+                // skok przy samym dotknięciu (tap) oraz po puszczeniu palca; w trakcie przeciągania tylko podgląd
+                if ((final || isStart) && audio.duration && isFinite(audio.duration)) {
+                    audio.currentTime = ratio * audio.duration;
+                    timeCur.textContent = formatTime(ratio * audio.duration);
+                }
+            });
+
+            // Głośność
+            bindSegDrag(volumeBar, function(ratio) {
+                if (ratio === null) return;
+                // zaokrąglenie do pełnych segmentów: to co widać = to co słychać (skrajnie w lewo = mute)
+                const segCount = Math.max(1, Math.round((volumeBar.clientWidth + 1) / SEG));
+                targetVolume = Math.round(ratio * segCount) / segCount;
+                clearInterval(fadeInterval); // użytkownik przejmuje kontrolę nad głośnością
+                setVolume(targetVolume);
+                renderVolume();
+            });
+
+            // Obsługa klawiatury (strzałki)
+            volumeBar.addEventListener('keydown', function(e) {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+                targetVolume = clamp01(targetVolume + (e.key === 'ArrowRight' ? 0.05 : -0.05));
+                clearInterval(fadeInterval);
+                setVolume(targetVolume);
+                renderVolume();
+                e.preventDefault();
+            });
+            progressContainer.addEventListener('keydown', function(e) {
+                if ((e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') || !audio.duration || isMobileLayout()) return;
+                audio.currentTime = Math.min(Math.max(audio.currentTime + (e.key === 'ArrowRight' ? 5 : -5), 0), audio.duration);
+                e.preventDefault();
+            });
+
+            audioEl.addEventListener('error', function() {
+                console.warn('Błąd elementu audio, kod:', audioEl.error && audioEl.error.code);
+            });
+            window.addEventListener('load', function() {
+                if (!isMobileLayout()) {
+                    setTimeout(function() { if (audio.prefetch) audio.prefetch(); }, 800);
+                }
+            });
+
+            renderVolume();
+            renderProgress(0);
+            window.addEventListener('resize', function() {
+                renderVolume();
+                renderProgress(seekDragging ? 0 : currentProgressRatio());
+            });
+
+            initSectionLabel();
+            initOrganicButtonParallax();
+        });
+
+        function initOrganicButtonParallax() {
+            const navBar = document.getElementById('navBar');
+            if (!navBar) return;
+            const buttons = navBar.querySelectorAll('a');
+            if (buttons.length === 0) return;
+
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight / 2;
+
+            window.addEventListener('mousemove', function(e) {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+            });
+
+            const buttonConfigs = [
+                { rangeX: 7, rangeY: 5, offset: 0 },
+                { rangeX: 5, rangeY: 8, offset: 2 },
+                { rangeX: 8, rangeY: 6, offset: 4 },
+                { rangeX: 6, rangeY: 7, offset: 6 },
+                { rangeX: 7, rangeY: 5, offset: 8 }
+            ];
+
+            function animateButtons() {
+                if (window.innerWidth > 768) {
+                    const centerX = window.innerWidth / 2;
+                    const centerY = window.innerHeight / 2;
+                    const normX = (mouseX - centerX) / centerX;
+                    const normY = (mouseY - centerY) / centerY;
+
+                    buttons.forEach((btn, index) => {
+                        const cfg = buttonConfigs[index] || buttonConfigs[0];
+                        const time = Date.now() * 0.001;
+                        const floatX = Math.sin(time * 1.5 + cfg.offset) * 2;
+                        const floatY = Math.cos(time * 1.2 + cfg.offset) * 2.5;
+
+                        const moveX = (normX * cfg.rangeX) + floatX;
+                        const moveY = (normY * cfg.rangeY) + floatY;
+
+                        btn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+                    });
+                } else {
+                    buttons.forEach(btn => {
+                        btn.style.transform = '';
+                    });
+                }
+                requestAnimationFrame(animateButtons);
+            }
+            requestAnimationFrame(animateButtons);
+        }
+
+        // Nazwa sekcji na planszy IN PROGRESS: z atrybutu data-section albo z nazwy pliku
+        function initSectionLabel() {
+            const box = document.getElementById('inProgress');
+            const label = document.getElementById('ipSection');
+            if (!box || !label) return;
+            let name = (box.getAttribute('data-section') || '').trim();
+            if (!name) {
+                const last = location.pathname.split('/').filter(Boolean).pop() || '';
+                name = last.replace(/\.[a-z0-9]+$/i, '');
+            }
+            name = (name || 'PAGE').replace(/[-_]+/g, ' ').toUpperCase();
+            label.textContent = name;
+            document.title = 'lost-section.com | ' + name;
+        }
+    </script>
+</body>
+</html>
