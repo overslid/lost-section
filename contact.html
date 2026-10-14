@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>lost-section.com | CONTACT</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="site.js" defer></script>
+</head>
+<body data-topbar="off">
+
+    <!-- ===== GÓRNY PASEK (widoczny tylko tam, gdzie #pageContent ma data-topbar="on") ===== -->
+    <div class="topbar-wrap" id="topbar" role="status" aria-label="Site information">
+        <div class="tb-scroll">
+            <div class="tb-row" id="tbRow">
+                <div class="tb-box tb-brand">LOST-SECTION</div>
+                <div class="tb-box tb-time"><span>It's currently</span><span class="tb-val"><span id="tbHH">--</span><span class="tb-colon">:</span><span id="tbMM">--</span></span><span>in Warsaw, Poland.</span></div>
+                <div class="tb-box tb-moon"><span id="tbMoonIcon"></span><span class="tb-moon-text" id="tbMoonText">moon</span></div>
+                <div class="tb-box tb-visits" id="tbVisits"><span>Thank you for visiting me</span><a href="https://www.counter12.com" target="_blank" rel="noopener"><img id="tbCounterImg" alt="visitor counter"></a><span>times.</span></div>
+                <div class="tb-box tb-motto-box"><span class="tb-label">MOTTO</span><span class="tb-motto" id="tbMotto"><span class="tb-motto-inner" id="tbMottoInner"></span></span></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ukryty odtwarzacz audio (zapasowy; główne odtwarzanie idzie przez Web Audio) -->
+    <audio id="bgAudio" src="audio/track.mp3" loop></audio>
+    <div class="side-banners-left"></div>
+
+    <div class="main-container">
+        <div class="banner-gora">
+            <a href="https://www.lost-section.com/">
+                <img src="images/ls_banner_gora.gif" alt="Lost Section Banner">
+            </a>
+        </div>
+
+        <div class="nav-bar" id="navBar">
+            <a href="about.html">
+                <img src="images/button_about_ls.png" alt="About">
+            </a>
+            <a href="archive.html">
+                <img src="images/button_archive_ls.png" alt="Archive">
+            </a>
+            <a href="/shop">
+                <img src="images/button_shop_ls.png" alt="Shop">
+            </a>
+            <a href="/contact">
+                <img src="images/button_contact_ls.png" alt="Contact">
+            </a>
+        </div>
+
+        <div class="margin-box"></div>
+
+        <!-- ===== TREŚĆ STRONY (tylko ten blok jest podmieniany przy przechodzeniu między podstronami) ===== -->
+        <main id="pageContent" data-topbar="off">
+            <!-- ============ IN PROGRESS ============
+                 Ten blok zastępuje niedokończone sekcje strony. Nazwa sekcji w nawiasie bierze się
+                 automatycznie z nazwy pliku (contact.html -> CONTACT). Możesz ją też wpisać ręcznie
+                 w atrybucie data-section, np. data-section="Shop". -->
+            <div class="in-progress" id="inProgress" data-section="">
+                <div class="ip-frame">
+                    <span class="ip-corner tl"></span>
+                    <span class="ip-corner tr"></span>
+                    <span class="ip-corner bl"></span>
+                    <span class="ip-corner br"></span>
+
+                    <div class="ip-label">[ SECTION: <span id="ipSection">CONTACT</span> ]<span class="ip-jp">工事中</span></div>
+                    <div class="ip-title" data-text="IN PROGRESS">IN PROGRESS</div>
+                    <div class="ip-bar" aria-hidden="true"><div class="ip-bar-fill"></div></div>
+                    <div class="ip-sub">UNDER CONSTRUCTION<span class="ip-cursor">_</span></div>
+                </div>
+            </div>
+        </main>
+
+        <div class="ls-partners">
+            <img src="images/ls_partners.jpg" alt="Partners">
+        </div>
+
+        <div class="ls-dol">
+            <img src="images/ls_dol.jpg" alt="Stopka">
+        </div>
+    </div>
+</body>
+</html>
